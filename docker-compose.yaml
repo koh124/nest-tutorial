@@ -1,0 +1,25 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:14.5-bullseye
+    container_name: postgresql
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+  app:
+    container_name: nest-todo-app
+    ports:
+      - 3000:3000
+    build:
+      context: .
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/todo?schema=public
+    # prismaのマイグレーションが完了するまで待機する
+    command: bash -c "npm run prisma && nest start"
